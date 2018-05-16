@@ -4,36 +4,7 @@ var passport = require('passport');
 var multer = require('multer');
 var fs = require('fs');
 const fileUpload = require('express-fileupload');
-
-//механизм хранения
-var storage = multer.diskStorage({
-    destination: './public/uploads/',
-    filename: function (req, file, cd) {
-        cd(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-    }
-});
-//+
-//инициализация загрузки
-var upload = multer({
-    storage: storage,
-    limits: {fileSize: 7},
-    fileFilter: function (req, file, cd) {
-        checkFileType(file, cd);
-    }
-}).single('filePhoto');
-
-//проверка типа файла
-function checkFiletType(file, cd) {
-    const fileTypes = /jpeg|jpg/;
-    const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = fileTypes.test(file.mimetype);
-
-    if (extname && mimetype) {
-        return cd(null, true);
-    } else {
-        cd('Error: Только изображения формата JPEG или JPG!')
-    }
-}
+var ExifImage = require('exif').ExifImage;
 
 //загрузка модели фотографии
 var Photo = require('../app/models/photo');
@@ -43,6 +14,8 @@ module.exports = function (app, passport) {
     app.get('/', function (req, res) {
         Photo.find({}, function (error, photos) {
             res.render('index.ejs', {photoList: photos, isAuth: req.isAuthenticated()});
+            //console.log('photoList', photos);
+
         });
     });
 
@@ -213,22 +186,49 @@ module.exports = function (app, passport) {
 
 
     app.post('/addPhoto',function (req, res) {
-        let phts = req.files.filePhotos;
-        if (!req.files) console.log('*********************************');
+        var phts = req.files.filePhotos;
+        if (!req.files){
+            console.log('*********************************');
+        }
         var photoName = './public/uploads/'+Date.now()+phts.name;
         phts.mv(photoName);
         //req.body.filePhotos = phts.name;
         var data = req.body;
         data.filePhoto = photoName;
-        var newPhoto = new Photo(data);
-        console.log(newPhoto, data);
-        newPhoto.save(function(err, temp){
-            console.log(temp);
-            if(err) console.log("ooopssss....");
-        });
-    
+        var gps;
+        try{
+            new ExifImage({image: phts.data}, function (error, exifData) {
+                if(error){
+                    console.log('Error: ' + error.message);
+                    console.log(phts);
+                } else{
+                        console.log('exif', exifData);
+                    var latRef = exifData.gps.GPSLatitudeRef === 'N' ? 1 : -1;
+                    var longRef = exifData.gps.GPSLongitudeRef === 'E' ? 1 : -1;
+                    var lat = exifData.gps.GPSLatitude;
+                    var long = exifData.gps.GPSLongitude;
+                    gps = {
+                        latitude: latRef * (lat[0]+ (lat[1]/60)+(lat[2]/3600)),
+                        longtitude: longRef * (long[0] + (long[1]/60) + (long[2]/3600))
+                    };
+                    data.longit = gps.longtitude;
+                    data.latit = gps.latitude;
+                    console.log(gps);
+                    var newPhoto = new Photo(data);
+                    newPhoto.save(function(err, temp){
+                        if(err){
+                            console.log("ooopssss....");
+                        }
+                    });
+                }
+            });
+        }catch (error) {
+            console.log('Error: ' + error.message);
+        }
+        console.log(gps);
+        
+        
         res.redirect('/');
-
     } ) ;
 };
 

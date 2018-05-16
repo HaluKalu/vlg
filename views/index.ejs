@@ -86,7 +86,9 @@
             </div>
                 <div class="gallery-tab container-map-gallery js-container" data-container='map'>
                     <div class="title-photomap">ФОТОКАРТА</div>
-                    <div class="container-photomap"></div>
+                    <div class="container-photomap">
+                        <div id="map" style="width: 100%; height: 500px;">_______</div>
+                    </div>
                 </div>
                 <div class="gallery-tab container-photo-gallery js-container active" data-container='gallery'>
                     <div class="title-photogallery">ФОТОГАЛЕРЕЯ</div>
@@ -96,13 +98,27 @@
                           <% if (photoList.length) { %>
                             <% for(var i=0; i < photoList.length; i++) { %>
                                 <a href="/sight-photo" style="background-image: url( <%= photoList[i].filePhoto %>)" class="photo_gallery-wrapper">
-				<span class="temp"> <%= photoList[i].filePhoto %> </span>
+
                                     <span class="photo_gallery-title"><%= photoList[i].titlePhoto %></span>
-                                    <span class="photo_gallery-desc-hover">
-                                <span class="desc-hover__auth">Автор: <span class="desc-hover__style"><%= photoList[i].username %></span></span>
-                                <span class="desc-hover__date">Опубликовано: <span class="desc-hover__style"><%= photoList[i].dateTime %></span></span>
+                                    <span class="gallery-desc-hover">
+                                <span class="desc-hover__auth">Автор: <span class="desc-hover__style">Runaeva<%= photoList[i].email %></span></span>
+                                <span class="desc-hover__date">Опубликовано: <span class="desc-hover__style">20.04.2018<%= photoList[i].dateTime %></span></span>
                                 <span class="desc-hover__category"> Категория: <span class="desc-hover__style"><%= photoList[i].categoryPhoto %></span></span>
-                                <span class="desc-hover__rating"> Рейтинг: <span class="desc-hover__style"><%= photoList[i].rating %></span></span>
+                                <span class="desc-hover__rating"> Рейтинг: <span class="desc-hover__style">
+                                        <%= photoList[i].rating %>
+                                        <div class="rating-count">
+                                          <input id="c1" type="radio" name="rating" value="1" required>
+                                          <label for="c1">1</label>
+                                          <input id="c2" type="radio" name="rating" value="2">
+                                          <label for="c2">2</label>
+                                          <input id="c3" type="radio" name="rating" value="3">
+                                          <label for="c3">3</label>
+                                          <input id="c4" type="radio" name="rating" value="4">
+                                          <label for="c4">4</label>
+                                          <input id="c5" type="radio" name="rating" value="5">
+                                          <label for="c5">5</label>
+                                        </div>
+                                    </span></span>
                                 </span>
                                 </a>
                             <% } %>
@@ -156,12 +172,14 @@
         </div>
 
         <!--ДОБАВЛЕНИЕ ФОТО-->
+
         <div id="popup-addPhoto" class="modal__content popup" role="document">
+            <%if(isAuth) { %>
             <div class="modal__header">
                 <div class="popup-close btn-close">&times;</div>
                 <h2><img src="./public/images/icons/picture.svg" width="100px" height="100px">Добавление фото</h2>
             </div>
-            <div class="modal__body"></div>
+            <div class="modal__body">
             <%= typeof  msg != 'undefined' ? msg : '' %>
             <form action="/addPhoto" method="post" id="addPhoto" enctype="multipart/form-data">
                 <div class="modal__form form-group">
@@ -175,7 +193,7 @@
                         <p>Формат фото: JPEG</p>
                         <p>Размер файла: не более 7 Мб</p>
                     </div>
-                    <input type="file" name="filePhotos" id="fileTest" multiple="multiple">
+                    <input type="file" name="filePhotos" id="fileTest">
                 </div>
                 <div class="modal__form form-group">
                     <label for="categoryPhoto">Категория:</label>
@@ -200,20 +218,55 @@
                 </div>
                 <button type="submit" class="btn uploadPhoto">Отправить</button>
             </form>
+            </div>
+            <%} else { %>
+            <div class="modal__close ">
+                <div class="popup-close btn-close">&times;</div>
+            </div>
+            <div class="modal__warning">
+            Добавлять фотографии могут только зарегистрированные пользователи!
+            </div>
+            <% } %>
         </div>
     </div>
 
-
-
-<!--&lt;!&ndash;сделать проверку на авторизованность пользователя&ndash;&gt;-->
-
-
-
 </div>
+
+
 
 <script src="./public/javascripts/jquery-3.2.1.min.js"></script>
 <script src="./public/javascripts/scripts.js"></script>
+<!-- <script src="./public/javascripts/galleryMap.js"></script> -->
 <script src="./public/javascripts/gallery-button.js"></script>
 <script src="./public/javascripts/modalWindow.js"></script>
+<script >
+    var map
+    function initMap(){
+        map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 8,
+        center: new google.maps.LatLng(48.42216, 44.31308),
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+        });
+    
+        <% photoList.forEach(function(temp) { %>
+            photo = "<%=temp.filePhoto%>";
+            photo.slice(0,1);
+            var marker = new google.maps.Marker({
+                position: new google.maps.LatLng(<%=temp.latit %>, <%=temp.longit%>),
+                icon: photo,
+                map: map
+            });
+        <%})%>
+    }
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDBHvpOfvw25fn98BMEgkOtnCZ4kVjhb4w&callback=initMap"> </script>
+
+
+<!--<script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">-->
+<!--</script>-->
+<!--<script async defer-->
+        <!--src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAPnH8mcza_4bepKeNRWxTR_02l-PB6bhw&callback=initMap">-->
+<!--</script>-->
+
 </body>
 </html>

@@ -15,9 +15,9 @@ module.exports = {
     },
 
     'facebookAuth' : {
-        'clientID'        : '154770778569773',
-        'clientSecret'    : '62c23b93db63ddd561e83ed4358ad3be',
-        'callbackURL'     : 'http://localhost:8080/auth/facebook/callback',
+        'clientID'        : '251549642056373',
+        'clientSecret'    : '1844583370902644cd7a2ab1e0cc76c5',
+        'callbackURL'     : 'http://vlgplace.herokuapp.com/auth/facebook/callback',
         'profileURL': 'https://graph.facebook.com/v2.12/me?fields=first_name,last_name,email',
         'profileFields'   : ['id', 'email', 'displayName', 'profileURL','username', 'link', 'gender', 'photos'] // For requesting permissions from Facebook API
 
